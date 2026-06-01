@@ -658,8 +658,66 @@ async function confirmBulk(type){
   }
 }
 
-/* ── UI ── */
-function switchTab(cls){
+/* ── 이름 수정 ── */
+function openNameEdit(){
+  const cls=currentClass;
+  editingClass=cls;
+  document.getElementById('nameEditDesc').textContent='1학년 '+cls+' 학생 이름을 수정하세요.';
+  renderNameGrid(cls);
+  document.getElementById('overlayName').classList.add('open');
+}
+
+function renderNameGrid(cls){
+  const g=document.getElementById('nameGrid');g.innerHTML='';
+  data[cls].names.forEach((name,i)=>{
+    const row=document.createElement('div');row.className='name-row';
+    row.innerHTML=`
+      <span>${i+1}</span>
+      <input class="name-input" id="ni_${i}" value="${name}" maxlength="10"/>
+      <button onclick="deleteStudent(${i})" style="width:26px;height:26px;border:none;background:#FAECE7;border-radius:6px;cursor:pointer;font-size:14px;flex-shrink:0;">🗑️</button>`;
+    g.appendChild(row);
+  });
+  // 추가 버튼
+  const addRow=document.createElement('div');
+  addRow.style='grid-column:1/-1;margin-top:4px;';
+  addRow.innerHTML=`<button onclick="addStudent()" style="width:100%;padding:8px;border:1.5px dashed #AFA9EC;border-radius:8px;background:#EEEDFE;color:#3C3489;font-size:13px;cursor:pointer;">➕ 학생 추가</button>`;
+  g.appendChild(addRow);
+}
+
+function addStudent(){
+  const cls=editingClass;
+  // 현재 입력값 임시 저장
+  data[cls].names.forEach((_,i)=>{
+    const inp=document.getElementById('ni_'+i);
+    if(inp) data[cls].names[i]=inp.value.trim()||data[cls].names[i];
+  });
+  data[cls].names.push('새학생');
+  data[cls].scores['새학생']=0;
+  renderNameGrid(cls);
+}
+
+function deleteStudent(idx){
+  const cls=editingClass;
+  // 현재 입력값 임시 저장
+  data[cls].names.forEach((_,i)=>{
+    const inp=document.getElementById('ni_'+i);
+    if(inp) data[cls].names[i]=inp.value.trim()||data[cls].names[i];
+  });
+  const name=data[cls].names[idx];
+  delete data[cls].scores[name];
+  data[cls].names.splice(idx,1);
+  renderNameGrid(cls);
+}
+
+async function saveNames(){
+  const cls=editingClass;
+  const old=[...data[cls].names];
+  const nw=old.map((_,i)=>{const inp=document.getElementById('ni_'+i);return inp?inp.value.trim()||old[i]:old[i];});
+  const ns={};nw.forEach((name,i)=>{ns[name]=data[cls].scores[old[i]]||0;});
+  data[cls].names=nw;data[cls].scores=ns;
+  await scheduleSave();closeOverlay('name');renderStudents(cls);
+  showToast('이름 저장됨 ✓');
+}
   currentClass=cls;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',CLASSES[i]===cls));
   document.querySelectorAll('.class-panel').forEach(p=>p.classList.toggle('active',p.id==='panel_'+cls));
