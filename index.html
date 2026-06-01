@@ -716,6 +716,9 @@ async function saveNames(){
   await scheduleSave();closeOverlay('name');renderStudents(cls);
   showToast('이름 저장됨 ✓');
 }
+
+/* ── UI ── */
+function switchTab(cls){
   currentClass=cls;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',CLASSES[i]===cls));
   document.querySelectorAll('.class-panel').forEach(p=>p.classList.toggle('active',p.id==='panel_'+cls));
@@ -736,20 +739,6 @@ function buildUI(){
     panel.innerHTML=`<div class="students-grid" id="grid_${cls}"></div>`;
     panels.appendChild(panel);
   });
-}
-
-/* ── 이름 수정 ── */
-function openNameEdit(){
-  const cls=currentClass;
-  editingClass=cls;
-  document.getElementById('nameEditDesc').textContent='1학년 '+cls+' 학생 이름을 수정하세요.';
-  const g=document.getElementById('nameGrid');g.innerHTML='';
-  data[cls].names.forEach((name,i)=>{
-    const row=document.createElement('div');row.className='name-row';
-    row.innerHTML=`<span>${i+1}</span><input class="name-input" id="ni_${i}" value="${name}" maxlength="10"/>`;
-    g.appendChild(row);
-  });
-  document.getElementById('overlayName').classList.add('open');
 }
 
 function showToast(msg){
